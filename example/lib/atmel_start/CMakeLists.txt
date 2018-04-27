@@ -43,14 +43,9 @@ list(APPEND ATMEL_START_INCLUDE_DIRS
     "./samd21a/include"
 )
 
-# Target to use the generated code as a library (excludes 'main.c').
+# Target to use the generated code as a library (without 'main.c').
 add_library(atmel_start STATIC ${ATMEL_START_SOURCE_FILES})
 
 # Directories to include when building the library.
 target_include_directories(atmel_start PUBLIC ${ATMEL_START_INCLUDE_DIRS})
 
-# Target to use the generated code as an executable (uses default 'main.c').
-add_executable(atmel_start_app "main.c" ${ATMEL_START_SOURCE_FILES})
-
-# Link executable against the library.
-target_link_libraries(atmel_start_app atmel_start_lib)

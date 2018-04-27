@@ -11,5 +11,7 @@ int main(void)
 
     /* Replace with your application code */
     while (1) {
+        delay_ms(100);
+        gpio_toggle_pin_level(LED_BUILTIN);
     }
 }
