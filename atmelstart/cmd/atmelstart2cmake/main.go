@@ -24,7 +24,6 @@ func main() {
 	}
 	pathMakefile := path.Join(dirAtmelStart, "gcc/Makefile")
 	pathToolchain := path.Join(dirAtmelStart, "toolchain.cmake")
-	pathCmakelists := path.Join(dirAtmelStart, "CMakeLists.txt")
 
 	makefile, err := os.Open(pathMakefile)
 	if err != nil {
@@ -49,17 +48,6 @@ func main() {
 		fatal(errors.Wrap(err, "write toolchain"))
 	}
 	fmt.Println("generated 'toolchain.cmake'")
-
-	// Create CMakeLists.txt
-	cmakelistsFile, err := os.Create(pathCmakelists)
-	if err != nil {
-		fatal(errors.Wrap(err, "open cmakelists"))
-	}
-	defer cmakelistsFile.Close()
-	if err := data.WriteCMakeLists(cmakelistsFile); err != nil {
-		fatal(errors.Wrap(err, "write cmakelists"))
-	}
-	fmt.Println("generated 'CMakeLists.txt'")
 }
 
 func usage() {

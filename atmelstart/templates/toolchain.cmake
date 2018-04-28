@@ -48,12 +48,6 @@ list(APPEND ATMEL_START_INCLUDE_DIRS
     {{- end}}
 )
 
-# Target to use the generated code as a library (without 'main.c').
-#add_library(atmel_start STATIC ${ATMEL_START_SOURCE_FILES})
-
-# Directories to include when building the library.
-#target_include_directories(atmel_start PUBLIC ${ATMEL_START_INCLUDE_DIRS})
-
 macro(add_atmel_start_executable target_name)
 
     set(elf_file ${target_name}.elf)
@@ -62,26 +56,20 @@ macro(add_atmel_start_executable target_name)
     # Outputs '.elf' file.
     add_executable(${elf_file} ${ARGN} ${ATMEL_START_SOURCE_FILES})
 
-    # Directories to include.
+    # Directories to include to compile the '.elf'.
     target_include_directories(${elf_file} PUBLIC ${ATMEL_START_INCLUDE_DIRS})
 
     # Outputs '.bin' file.
-	add_custom_command(
-		OUTPUT ${bin_file}
+	add_custom_target(
+		${bin_file}
 		COMMAND ${CMAKE_OBJCOPY} -O binary ${elf_file} ${bin_file}
 		DEPENDS ${elf_file}
 	)
 
-	# build the intel hex file for the device
+	# Outputs all files.
     add_custom_target(
         ${target_name}
-        ALL
-        DEPENDS ${bin_file}
-    )
-    set_target_properties(
-    		${target_name}
-    		PROPERTIES
-    			OUTPUT_NAME ${elf_file}
+        DEPENDS ${elf_file} ${bin_file}
     )
 
-endmacro()
+endmacro(add_atmel_start_executable)

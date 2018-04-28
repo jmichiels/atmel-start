@@ -12,11 +12,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-var templateToolchain, templateCMakeLists *template.Template
+var templateToolchain *template.Template
 
 func init() {
 	templateToolchain = templateMustParse("toolchain.cmake")
-	templateCMakeLists = templateMustParse("CMakeLists.txt")
 }
 
 func templateMustParse(name string) *template.Template {
@@ -67,11 +66,6 @@ func (data *Data) ReadMakefile(r io.Reader) error {
 		return errors.Wrap(err, "find device")
 	}
 	return nil
-}
-
-// WriteCMakeLists writes the 'CMakeLists.txt' to the provided writer.
-func (data *Data) WriteCMakeLists(w io.Writer) error {
-	return templateCMakeLists.Execute(w, data)
 }
 
 // WriteToolchain writes the 'toolchain.cmake' to the provided writer.
