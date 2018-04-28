@@ -26,7 +26,7 @@ func templateMustParse(name string) *template.Template {
 	return tmpl
 }
 
-// Contains all the data we need from 'gcc/Makefile' to create 'CMakeLists.txt' and 'toolchain.cmake'.
+// Contains all the data we need from 'gcc/Makefile' to create 'toolchain.cmake'.
 type Data struct {
 
 	// Source files to compile.
