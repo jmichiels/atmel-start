@@ -5,17 +5,20 @@ import (
 	"fmt"
 
 	"context"
-	"log"
-
-	"os"
-
-	"path/filepath"
 
 	"io/ioutil"
 
+	"time"
+
+	"bytes"
+
+	"net/http"
+
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/runner"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -33,126 +36,128 @@ func runMaximized() runner.CommandLineOption {
 	}
 }
 
+const jsLoadConfiguration = `
+(function(){
+	if(!ACME.Project.isReady() && !ACME.Project.isLoading()) {
+		ACME.Start.openProject(%s);
+	}
+	return ACME.Project.isReady();
+})();
+`
+
+func voidLogger(format string, a ...interface{}) {}
+
 // openCmd represents the open command
 var openCmd = &cobra.Command{
 	Use:  "open",
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("open called")
-
 		if len(args) != 1 {
-			fatal(errors.New("missing .atstart"))
+			logrus.Fatal(errors.New("missing .atstart"))
 		}
 
-		configYAMLReader, err := os.Open(args[0])
+		configYAML, err := ioutil.ReadFile(args[0])
 		if err != nil {
-			fatal(errors.Wrap(err, "open .atstart"))
-		}
-
-		configYAML, err := ioutil.ReadAll(configYAMLReader)
-		if err != nil {
-			fatal(errors.Wrap(err, "read .atstart"))
+			logrus.Fatal(errors.Wrap(err, "read .atstart"))
 		}
 
 		EscapedConfigYAML, err := json.Marshal(string(configYAML))
 		if err != nil {
-			fatal(errors.Wrap(err, "escape .atstart"))
+			logrus.Fatal(errors.Wrap(err, "escape .atstart"))
 		}
 
-		//fmt.Printf(`ACME.Start.openProject(%s);`, EscapedConfigYAML)
-		//
-		//return
-		//
-		//fmt.Println(string(escapedProject))
-
-		//
-		//response, err := http.Post("http://start.atmel.com/api/v2/project_format/transport/latest", "application/json", request)
-		//if err != nil {
-		//	fatal(errors.Wrap(err, "post .atstart"))
-		//}
-		//
-		//decodedResponse := make(map[string]interface{})
-		//if err := json.NewDecoder(response.Body).Decode(&decodedResponse); err != nil {
-		//	fatal(errors.Wrap(err, "decode json"))
-		//}
-		//
-		//decodedResponseResult, ok := decodedResponse["result"]
-		//if !ok {
-		//	fatal(errors.New("malformed response"))
-		//}
-		//decodedResponseResultMap, ok := decodedResponseResult.(map[string]interface{})
-		//if !ok {
-		//	fatal(errors.New("malformed response"))
-		//}
-		//decodedResponseProject, ok := decodedResponseResultMap["project"]
-		//if !ok {
-		//	fatal(errors.New("malformed response"))
-		//}
-		//
-		//encodedProject, err := json.Marshal(decodedResponseProject)
-		//if err != nil {
-		//	fatal(errors.Wrap(err, "encode json"))
-		//}
-		//
-		//fmt.Println(string(encodedProject))
-		//
-		//escapedProject, err := json.Marshal(string(encodedProject))
-		//if err != nil {
-		//	fatal(errors.Wrap(err, "escape json"))
-		//}
-		//
-		//fmt.Println(string(escapedProject))
-
-		// create context
+		// Create cancellable context
 		ctxt, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		//r, err := runner.New(func(i map[string]interface{}) error {
-		//	i["app"] = "http://start.atmel.com/"
-		//	i["start-maximized"] = ""
-		//	return nil
-		//})
-		//if err != nil {
-		//	fatal(err)
-		//}
-		//if err := r.Start(ctxt); err != nil {
-		//	fatal(err)
-		//}
+		logrus.Info("open new chrome instance")
 
-		//runner.Run
-
-		abs, err := filepath.Abs(os.Args[1])
+		// Open Atmel Start in Chrome (disable logs, app mode, maximized).
+		chrome, err := chromedp.New(ctxt, chromedp.WithLog(voidLogger), chromedp.WithRunnerOptions(runApp("http://start.atmel.com"), runMaximized()))
 		if err != nil {
-			fatal(err)
-		}
-		fmt.Println(abs)
-
-		// Open in chrome.
-		c, err := chromedp.New(ctxt, chromedp.WithLog(log.Printf), chromedp.WithRunnerOptions(runApp("http://start.atmel.com"), runMaximized()))
-		if err != nil {
-			fatal(err)
-		}
-		var result []byte
-
-		err = c.Run(ctxt, chromedp.Tasks{
-			chromedp.Evaluate(fmt.Sprintf(`ACME.Start.openProject(%s);`, EscapedConfigYAML), &result),
-
-			//chromedp.Evaluate(fmt.Sprintf(`localStorage.setItem("projects-currentProject",%s);`, string(escapedProject)), &result),
-			//chromedp.Navigate(`http://start.atmel.com/#dashboard`),
-		})
-		if err != nil {
-			fatal(err)
+			logrus.Fatal(err)
 		}
 
-		//chromedp.Action()
+		closed := make(chan struct{})
 
-		// wait for chrome to finish
-		err = c.Wait()
-		if err != nil {
-			fatal(err)
+		go func() {
+			// Wait for chrome to finish
+			err = chrome.Wait()
+			close(closed)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+		}()
+
+		var isReady bool
+
+		var prevConfigJSON []byte
+		var currConfigJSON []byte
+
+		ticker := time.NewTicker(100 * time.Millisecond)
+
+		logrus.Info("start loading configuration")
+
+		for {
+			select {
+			case <-ticker.C:
+				if !isReady {
+					err = chrome.Run(ctxt, chromedp.Tasks{
+						// Load the project with the provided config.
+						chromedp.Evaluate(fmt.Sprintf(jsLoadConfiguration, EscapedConfigYAML), &isReady),
+					})
+					if err != nil {
+						if _, ok := err.(*runtime.ExceptionDetails); ok {
+							// An exception is thrown if ACME.Start does not exists yet.
+							continue
+						}
+						logrus.Fatal(errors.Wrap(err, "loading configuration"))
+					}
+					if isReady {
+						logrus.Info("done loading configuration")
+
+						// Lower the ticker frequency.
+						ticker = time.NewTicker(time.Second)
+
+						logrus.Info("start watching for configuration change")
+					}
+				} else {
+					err = chrome.Run(ctxt, chromedp.Tasks{
+						// Get the current configuration in raw JSON.
+						chromedp.Evaluate(`ACME.ProjectSession.save()`, &currConfigJSON),
+					})
+					if err != nil {
+						logrus.Fatal(errors.Wrap(err, "read configuration"))
+					}
+					if bytes.Compare(prevConfigJSON, currConfigJSON) != 0 {
+						if prevConfigJSON != nil {
+							logrus.Info("configuration change detected")
+							response, err := http.Post(`http://start.atmel.com/api/v1/project_format/storage/latest`, `application/json`, bytes.NewReader(currConfigJSON))
+							if err != nil {
+								logrus.Fatal(errors.Wrap(err, "format configuration"))
+							}
+							if response.StatusCode != http.StatusOK {
+								logrus.Fatal(errors.New("format configuration"))
+							}
+							formatted, err := ioutil.ReadAll(response.Body)
+							if err != nil {
+								logrus.Fatal(errors.Wrap(err, "write configuration"))
+							}
+							if err := ioutil.WriteFile(args[0], formatted, 666); err != nil {
+								logrus.Fatal(errors.Wrap(err, "write configuration"))
+							}
+
+							logrus.Info("configuration file updated")
+						}
+						prevConfigJSON = currConfigJSON
+						currConfigJSON = make([]byte, 0, len(prevConfigJSON))
+					}
+				}
+			case <-closed:
+				logrus.Info("chrome instance closed")
+				return
+			}
 		}
-
-		//fmt.Println(resp)
 	},
 }
 
