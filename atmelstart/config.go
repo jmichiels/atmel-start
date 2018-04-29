@@ -2,15 +2,18 @@ package atmelstart
 
 import (
 	"bytes"
-	"net/http"
-
-	"io/ioutil"
-
+	"encoding/json"
 	"io"
-
+	"io/ioutil"
+	"net/http"
 	"os"
 
-	"encoding/json"
+	"path"
+
+	"archive/zip"
+
+	"fmt"
+	"log"
 
 	"github.com/pkg/errors"
 )
@@ -25,19 +28,72 @@ const (
 	urlAPIv2 = urlAtmelStart + `api/v2/`
 
 	// Endpoint to request the conversion from YAML ("storage") to JSON ("transport")
-	urlAPILatestStorage = urlAPIv1 + `project_format/storage/latest`
+	urlAPILatestTransport = urlAPIv2 + `project_format/transport/latest`
 
 	// Endpoint to request the conversion from JSON ("transport") to YAML ("storage")
-	urlAPILatestTransport = urlAPIv2 + `project_format/transport/latest`
+	urlAPILatestStorage = urlAPIv1 + `project_format/storage/latest`
 
 	// Endpoint to request to generate the project code given the JSON config.
 	urlAPIGenerate = urlAPIv1 + `generate/?format=atzip&compilers=[atmel_studio,make]&file_name_base=My%20Project`
 
 	// Fields to add the the JSON for the generate request to work.
 	jsonTweak = `"jsonForm":"=1"`
+
+	// Hidden directory.
+	hiddenDirName = `.atstart`
+
+	// Default name of the configuration file.
+	configFileName = `atstart.yaml`
 )
 
-type ConfigFile string
+func Generate() error {
+	var configYAML configYAML
+	//hiddenDir := path.Join(dir, hiddenDirName)
+	if err := configYAML.ReadFromFile(configFileName); err != nil {
+		return errors.Wrap(err, "read configuration file")
+	}
+	generatedZIPReader, err := configYAML.requestGenerate()
+	if err != nil {
+		return err
+	}
+	generatedZIP, err := ioutil.ReadAll(generatedZIPReader)
+	if err != nil {
+		return errors.Wrap(err, "read generated archive")
+	}
+	zipReader, err := zip.NewReader(bytes.NewReader(generatedZIP), int64(len(generatedZIP)))
+	if err != nil {
+		return errors.Wrap(err, "open generated archive")
+	}
+	for _, f := range zipReader.File {
+		fmt.Printf("Contents of %s:\n", f.Name)
+		rc, err := f.Open()
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = io.CopyN(os.Stdout, rc, 68)
+		if err != nil {
+			log.Fatal(err)
+		}
+		rc.Close()
+		fmt.Println()
+	}
+	return nil
+}
+
+func removeAllExceptConfigFile(dir string) error {
+	entries, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return errors.Wrap(err, "read directory")
+	}
+	for _, entry := range entries {
+		if entry.Name() != configFileName {
+			if err := os.RemoveAll(path.Join(dir, entry.Name())); err != nil {
+				return errors.Wrap(err, "remove directory content")
+			}
+		}
+	}
+	return nil
+}
 
 type byteSlice []byte
 
@@ -121,6 +177,21 @@ func (conf *configYAML) requestGenerate() (io.Reader, error) {
 	return resp, nil
 }
 
+func (conf *configJSON) requestYAML() (*configYAML, error) {
+	resp, err := http.Post(urlAPILatestStorage, `application/json`, conf.GetReader())
+	if err == nil && resp.StatusCode != http.StatusOK {
+		err = errors.New(resp.Status)
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "post request")
+	}
+	var confYAML configYAML
+	if err := confYAML.ReadFrom(resp.Body); err != nil {
+		return nil, errors.Wrap(err, "read response")
+	}
+	return &confYAML, nil
+}
+
 type configJSON struct{ byteSlice }
 
 func (conf *configJSON) requestGenerate() (io.Reader, error) {
@@ -133,18 +204,3 @@ func (conf *configJSON) requestGenerate() (io.Reader, error) {
 	}
 	return resp.Body, nil
 }
-
-//type ConfigFileEditor struct {
-//}
-//
-//func (editor *ConfigFileEditor) Open() {
-//
-//}
-//
-//func (editor *ConfigFileEditor) Close() {
-//
-//}
-//
-//func (editor *ConfigFileEditor) Save() {
-//
-//}
