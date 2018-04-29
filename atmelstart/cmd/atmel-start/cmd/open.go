@@ -28,10 +28,6 @@ func runApp(path string) runner.CommandLineOption {
 	return runner.Flag("app", path)
 }
 
-func runDefaultUser() runner.CommandLineOption {
-	return runner.Flag("user-data-dir", "")
-}
-
 func runMaximized() runner.CommandLineOption {
 	return runner.Flag("start-maximized", "")
 }
@@ -45,7 +41,7 @@ const jsLoadConfiguration = `
 })();
 `
 
-func voidLogger(format string, a ...interface{}) {}
+func voidLogger(string, ...interface{}) {}
 
 var chrome *chromedp.CDP
 
@@ -81,7 +77,11 @@ var openCmd = &cobra.Command{
 		logrus.Info("open new chrome instance")
 
 		// Open Atmel Start in Chrome (disable logs, app mode, maximized).
-		chrome, err = chromedp.New(ctxt, chromedp.WithLog(voidLogger), chromedp.WithRunnerOptions(runApp("http://start.atmel.com"), runMaximized()))
+		chrome, err = chromedp.New(ctxt,
+			chromedp.WithLog(voidLogger),
+			chromedp.WithRunnerOptions(
+				runApp("http://start.atmel.com"),
+				runMaximized()))
 		if err != nil {
 			logrus.Fatal(err)
 		}
@@ -134,6 +134,7 @@ var openCmd = &cobra.Command{
 				} else {
 					compareAndSave(ctxt)
 				}
+
 			case <-interrupt:
 				logrus.Info("interrupt signal catched")
 				compareAndSave(ctxt)
