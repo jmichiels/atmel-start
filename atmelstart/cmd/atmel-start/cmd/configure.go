@@ -50,10 +50,11 @@ var configFile string
 var prevConfigJSON []byte
 var currConfigJSON []byte
 
-// openCmd represents the open command
-var openCmd = &cobra.Command{
-	Use:  "open",
-	Args: cobra.MaximumNArgs(1),
+// configureCmd represents the configure command
+var configureCmd = &cobra.Command{
+	Use:   "configure",
+	Short: "Opens or create a configuration file",
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
 			logrus.Fatal(errors.New("missing .atstart"))
@@ -97,7 +98,7 @@ var openCmd = &cobra.Command{
 			}
 		}()
 
-		interrupt := make(chan os.Signal)
+		interrupt := make(chan os.Signal, 1)
 
 		// Wait for an interrupt signal.
 		signal.Notify(interrupt, os.Interrupt)
@@ -183,5 +184,5 @@ func compareAndSave(ctxt context.Context) {
 }
 
 func init() {
-	rootCmd.AddCommand(openCmd)
+	rootCmd.AddCommand(configureCmd)
 }

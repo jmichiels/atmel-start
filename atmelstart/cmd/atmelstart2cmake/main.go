@@ -6,7 +6,7 @@ import (
 
 	"path"
 
-	"github.com/jmichiels/AtmelStart-CMake/atmelstart"
+	"github.com/jmichiels/AtmelStart/atmelstart"
 	"github.com/pkg/errors"
 )
 
