@@ -10,8 +10,10 @@ import (
 
 	"time"
 
-	"bytes"
+	"os"
+	"os/signal"
 
+	"bytes"
 	"net/http"
 
 	"github.com/chromedp/cdproto/runtime"
@@ -23,17 +25,15 @@ import (
 )
 
 func runApp(path string) runner.CommandLineOption {
-	return func(m map[string]interface{}) error {
-		m["app"] = path
-		return nil
-	}
+	return runner.Flag("app", path)
+}
+
+func runDefaultUser() runner.CommandLineOption {
+	return runner.Flag("user-data-dir", "")
 }
 
 func runMaximized() runner.CommandLineOption {
-	return func(m map[string]interface{}) error {
-		m["start-maximized"] = ""
-		return nil
-	}
+	return runner.Flag("start-maximized", "")
 }
 
 const jsLoadConfiguration = `
@@ -47,6 +47,13 @@ const jsLoadConfiguration = `
 
 func voidLogger(format string, a ...interface{}) {}
 
+var chrome *chromedp.CDP
+
+var configFile string
+
+var prevConfigJSON []byte
+var currConfigJSON []byte
+
 // openCmd represents the open command
 var openCmd = &cobra.Command{
 	Use:  "open",
@@ -55,8 +62,9 @@ var openCmd = &cobra.Command{
 		if len(args) != 1 {
 			logrus.Fatal(errors.New("missing .atstart"))
 		}
+		configFile = args[0]
 
-		configYAML, err := ioutil.ReadFile(args[0])
+		configYAML, err := ioutil.ReadFile(configFile)
 		if err != nil {
 			logrus.Fatal(errors.Wrap(err, "read .atstart"))
 		}
@@ -73,7 +81,7 @@ var openCmd = &cobra.Command{
 		logrus.Info("open new chrome instance")
 
 		// Open Atmel Start in Chrome (disable logs, app mode, maximized).
-		chrome, err := chromedp.New(ctxt, chromedp.WithLog(voidLogger), chromedp.WithRunnerOptions(runApp("http://start.atmel.com"), runMaximized()))
+		chrome, err = chromedp.New(ctxt, chromedp.WithLog(voidLogger), chromedp.WithRunnerOptions(runApp("http://start.atmel.com"), runMaximized()))
 		if err != nil {
 			logrus.Fatal(err)
 		}
@@ -89,10 +97,12 @@ var openCmd = &cobra.Command{
 			}
 		}()
 
-		var isReady bool
+		interrupt := make(chan os.Signal)
 
-		var prevConfigJSON []byte
-		var currConfigJSON []byte
+		// Wait for an interrupt signal.
+		signal.Notify(interrupt, os.Interrupt)
+
+		var isReady bool
 
 		ticker := time.NewTicker(100 * time.Millisecond)
 
@@ -122,43 +132,53 @@ var openCmd = &cobra.Command{
 						logrus.Info("start watching for configuration change")
 					}
 				} else {
-					err = chrome.Run(ctxt, chromedp.Tasks{
-						// Get the current configuration in raw JSON.
-						chromedp.Evaluate(`ACME.ProjectSession.save()`, &currConfigJSON),
-					})
-					if err != nil {
-						logrus.Fatal(errors.Wrap(err, "read configuration"))
-					}
-					if bytes.Compare(prevConfigJSON, currConfigJSON) != 0 {
-						if prevConfigJSON != nil {
-							logrus.Info("configuration change detected")
-							response, err := http.Post(`http://start.atmel.com/api/v1/project_format/storage/latest`, `application/json`, bytes.NewReader(currConfigJSON))
-							if err != nil {
-								logrus.Fatal(errors.Wrap(err, "format configuration"))
-							}
-							if response.StatusCode != http.StatusOK {
-								logrus.Fatal(errors.New("format configuration"))
-							}
-							formatted, err := ioutil.ReadAll(response.Body)
-							if err != nil {
-								logrus.Fatal(errors.Wrap(err, "write configuration"))
-							}
-							if err := ioutil.WriteFile(args[0], formatted, 666); err != nil {
-								logrus.Fatal(errors.Wrap(err, "write configuration"))
-							}
-
-							logrus.Info("configuration file updated")
-						}
-						prevConfigJSON = currConfigJSON
-						currConfigJSON = make([]byte, 0, len(prevConfigJSON))
-					}
+					compareAndSave(ctxt)
 				}
+			case <-interrupt:
+				logrus.Info("interrupt signal catched")
+				compareAndSave(ctxt)
+				logrus.Info("configuration saved")
+				return
+
 			case <-closed:
 				logrus.Info("chrome instance closed")
 				return
 			}
 		}
 	},
+}
+
+func compareAndSave(ctxt context.Context) {
+	err := chrome.Run(ctxt, chromedp.Tasks{
+		// Get the current configuration in raw JSON.
+		chromedp.Evaluate(`ACME.ProjectSession.save()`, &currConfigJSON),
+	})
+	if err != nil {
+		logrus.Fatal(errors.Wrap(err, "read configuration"))
+	}
+	if bytes.Compare(prevConfigJSON, currConfigJSON) != 0 {
+		if prevConfigJSON != nil {
+			logrus.Info("configuration change detected")
+			response, err := http.Post(`http://start.atmel.com/api/v1/project_format/storage/latest`, `application/json`, bytes.NewReader(currConfigJSON))
+			if err != nil {
+				logrus.Fatal(errors.Wrap(err, "format configuration"))
+			}
+			if response.StatusCode != http.StatusOK {
+				logrus.Fatal(errors.New("format configuration"))
+			}
+			formatted, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				logrus.Fatal(errors.Wrap(err, "write configuration"))
+			}
+			if err := ioutil.WriteFile(configFile, formatted, 666); err != nil {
+				logrus.Fatal(errors.Wrap(err, "write configuration"))
+			}
+
+			logrus.Info("configuration file updated")
+		}
+		prevConfigJSON = currConfigJSON
+		currConfigJSON = make([]byte, 0, len(prevConfigJSON))
+	}
 }
 
 func init() {
