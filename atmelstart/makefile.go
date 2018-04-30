@@ -9,6 +9,10 @@ import (
 	"sort"
 	"text/template"
 
+	"path"
+
+	"os"
+
 	"github.com/pkg/errors"
 )
 
@@ -16,6 +20,32 @@ var templateToolchain *template.Template
 
 func init() {
 	templateToolchain = templateMustParse("toolchain.cmake")
+}
+
+func GenerateCMakeToolchain() error {
+	pathMakefile := path.Join(hiddenDirName, `gcc/Makefile`)
+	pathToolchain := path.Join(hiddenDirName, `toolchain.cmake`)
+
+	makefile, err := os.Open(pathMakefile)
+	if err != nil {
+		return errors.Wrap(err, "open makefile")
+	}
+	defer makefile.Close()
+
+	data := Data{}
+	if err := data.ReadMakefile(makefile); err != nil {
+		return errors.Wrap(err, "read makefile")
+	}
+
+	toolchainFile, err := os.Create(pathToolchain)
+	if err != nil {
+		return errors.Wrap(err, "open toolchain")
+	}
+	defer toolchainFile.Close()
+	if err := data.WriteToolchain(toolchainFile); err != nil {
+		return errors.Wrap(err, "write toolchain")
+	}
+	return nil
 }
 
 func templateMustParse(name string) *template.Template {

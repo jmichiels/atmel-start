@@ -12,10 +12,8 @@ import (
 
 	"archive/zip"
 
-	"fmt"
-	"log"
-
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -48,7 +46,6 @@ const (
 
 func Generate() error {
 	var configYAML configYAML
-	//hiddenDir := path.Join(dir, hiddenDirName)
 	if err := configYAML.ReadFromFile(configFileName); err != nil {
 		return errors.Wrap(err, "read configuration file")
 	}
@@ -64,18 +61,30 @@ func Generate() error {
 	if err != nil {
 		return errors.Wrap(err, "open generated archive")
 	}
-	for _, f := range zipReader.File {
-		fmt.Printf("Contents of %s:\n", f.Name)
-		rc, err := f.Open()
+	if err := os.RemoveAll(hiddenDirName); err != nil {
+		return errors.Wrap(err, "remove generated code")
+	}
+	for _, file := range zipReader.File {
+
+		logrus.Debugf("write %s", file.Name)
+
+		fileReader, err := file.Open()
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
-		_, err = io.CopyN(os.Stdout, rc, 68)
+		defer fileReader.Close()
+		filePath := path.Join(hiddenDirName, file.Name)
+		if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
+			return err
+		}
+		fileWriter, err := os.Create(filePath)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
-		rc.Close()
-		fmt.Println()
+		defer fileWriter.Close()
+		if _, err := io.Copy(fileWriter, fileReader); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -128,7 +137,7 @@ func (b byteSlice) WriteTo(w io.Writer) (err error) {
 }
 
 func (b *byteSlice) WriteToFile(path string) (err error) {
-	f, err := os.OpenFile(path, os.O_WRONLY, 666)
+	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
@@ -177,6 +186,13 @@ func (conf *configYAML) requestGenerate() (io.Reader, error) {
 	return resp, nil
 }
 
+func (conf *configYAML) escape() []byte {
+	escaped, _ := json.Marshal(conf.String())
+	return escaped
+}
+
+type configJSON struct{ byteSlice }
+
 func (conf *configJSON) requestYAML() (*configYAML, error) {
 	resp, err := http.Post(urlAPILatestStorage, `application/json`, conf.GetReader())
 	if err == nil && resp.StatusCode != http.StatusOK {
@@ -191,8 +207,6 @@ func (conf *configJSON) requestYAML() (*configYAML, error) {
 	}
 	return &confYAML, nil
 }
-
-type configJSON struct{ byteSlice }
 
 func (conf *configJSON) requestGenerate() (io.Reader, error) {
 	resp, err := http.Post(urlAPIGenerate, `text/plain`, conf.GetReader())
