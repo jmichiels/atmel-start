@@ -190,42 +190,28 @@ func FSMustString(useLocal bool, name string) string {
 
 var _escData = map[string]*_escFile{
 
-	"/templates/CMakeLists.txt": {
-		local:   "templates/CMakeLists.txt",
-		size:    587,
-		modtime: 1524866854,
-		compressed: `
-H4sIAAAAAAAC/5yQ32qjQBSH732KQ3ZBc7GThX0CNxoQzB/U9HaYzJyYITrS45G0iO9etFJSQqH0+nc4
-38ena3VFWVtn666WhM+dJTTBU5zlyX4H/8Tfpef9grzpSCOcbYUt4AuT0owGztTU4Jdar7bqiuPqC6+y
-LQfh4RDvIgiLbZzKvAizQub7Y7aO5SZJ49wDAOj7P0DKlQji/f9mfD8M07gQq74Xw7D4OEVnhsGbdBKn
-q84gGEuouSH7c6tkt06PUSyjJHuwmjGRpW9ZFYpKZOAGuhaBLwglOiQ1OunGIKgWFFT2RIpeIbhZvjQd
-g18r64T2l8JTxsh5DxTXWMmWFTHkRVgka/jdf9VzmASiuxzcgJ0r3S7o4NTZylhXTl4zQ3g8Kcv5Ut71
-/MQ/HP+nD/z7ciP/LQAA///4ieJGSwIAAA==
-`,
-	},
-
 	"/templates/toolchain.cmake": {
 		local:   "templates/toolchain.cmake",
-		size:    2290,
-		modtime: 1524877235,
+		size:    2353,
+		modtime: 1525118353,
 		compressed: `
-H4sIAAAAAAAC/5xVUW+jOBB+Dr9i1EZKohzpSfu0D32ghOa4JhAB3b08WY6ZUF/B5GyzuxXiv59MSEq6
-qbbavlDZ833zzcw3DivoM5KCC15UBZH4X8UlpuMvXhT7YQCfZn9OLOsaRgsUKDkbwa6UgMUW0xRTUC9K
-YwHfuX4qKw1UQBjPLIV67K6cB4/EmzjxViRwVh50DC1djBpcYGWx5znKPsIlbrha+0svAioLW5QCbaRb
-bmeMTY7I6fQydjp9Fz2dHtHl9l9W7l+g0jzn+qVPEN797YbrzRtsB2iFryV+Q6EV5Fw8c5EBV6pC+P7E
-cwSNSpuzS9qSaHPURhInWngJSTZrD+LESXyXLP27yIk2r805ti8KwwSogh0XKdnLMpO0GE9AlqXu09/7
-wZyYWLJ2kr/IKpx7ZB2Fi8hZQeB98aLJGfF5+Ik/51tJ5csH+TvNEAbLzYfodzzH8eTmUArVTx/M4wfu
-8nHufTzPnrJnmuFH2+S4D87iSG9dg6MLzCHWVOqWAFIukelSdl5xkpW3JHHiRAmZ+xEM685+j1HkBQlZ
-+nF70bRsSy6eUYJiku87LUs/ePAiEruRv07gali/YWxu6np2wMUtrGmuTOFuWRSlONkLqEhbH6KEXU4z
-1VUarlZhQO6XziKGK7vQT1WxBbtg++q2rmfu+rGjM308cfUJukU8MBh9fcoG7FCBvdtVgmleClth+1Vg
-F3kpMpvRPFdgZ5/A/krzHGyl09tMVJ8/gz0npK5nc/zGGTYNIScdF8poVXj/GJ+17eoK+knN1/wP21Zm
-WnYmy2oPdl50pyjS45mt9sjUraCinLX/diEZ6xWQDOuz2Zg+GYFlJRmCsa8C/KElZRpT2MmygFHG2M2K
-PqO5Hc2snCs9dtZrL5hDf6xx+Bi5xoBLL7YAAOraBklFhjA78N8b+qZpL9/xRNNcnbAo0qaxWn2+YHmV
-4smn/PdldrtmMv4ks0sz5/J3ZBaUyXJM05RQs1+knRjBH8gqTbfm9aQyQ00ELXBitXhjA8x37bsBw7oX
-0Mww301OQVsuLgZtueioriGs9L7SCkYGOmqHOWuvjKRXGeNhfUzZwLB2okXQft8ZZXPin/ear0vg3Ux0
-edwx0E/YZT8k7qR2kaQ3vTMR68e7pe++0dCfU3Ohxi0XxxoHpkBWKV0W5JBybA0Gw/rYtMYaDMxKOcH8
-9JR1P4Rm12HLBZUvcN6XPnjuGRvF/QhrMLGswasg8w606/Pa8jeKoPs7n+Dp+EKOMxUmZmJZKNJf+Wzy
-fwAAAP//QSHZ8/IIAAA=
+H4sIAAAAAAAC/5xWUXObOBB+Nr9iJ8lM7Mnh3kyf+tAHgqmPKwYGcHt+0shiTXQBySdE2wzDf78RBhen
+aSfTJxJp99vv2/0kmVX0EUnFBa+aiij8r+EK8/knL0n9KIS3yz8XlnUNt2sUqDi7hYNUgNUe8xxzqJ9q
+jRV85fpBNhqogChdWjXqubtxPnok3aWZtyGhs/FgQOjhUtTgApPVkZeophkucaNN7AdeAlRVtpACbaR7
+bheMLcbMu7uXc+/ufpp9dzdmy/2/TB6foNG85PppChDd/+1G8e5Z7pDQE48VfkGhayi5eOSiAF7XDcLX
+B14iaKy1WXuJW5bsRm4kc5K1l5FsF3uQZk7muyTw7xMn2X1vzti+JIoyoDUcuMjJUclC0Wq+ACWlnsJ/
+8MMVMbEkdrK/yCZaeSROonXibCD0PnnJ4gL4MvyMX/K9ourplfgDZ4jCYPcq+AMvcb54c5JC9cMr6/ih
+G2xX3uvrHCl7pAW+tk2O+9FZj/DWNTi6whJSTZXuASDnCpmWavCKk228gKSZk2Rk5Sdw0w722yaJF2Yk
+8NN+o+vRAi4eUUHNFD8OXAI//OglJHUTP87g6qZ9hti9advlKS/t07ruygh3ZVVJcbYXUJH3PkQFh5IW
+9aA02myikHwInHUKV3alH5pqD3bFjs37tl268XaAM308Y00BhoN4QjD8ppAd2FEN9uHQCKa5FHaN/bcG
+uyqlKGxGy7IGu3gL9mdalmDXOn9fiObdO7BXhLTtcoVfOMOuI+TM4wUZPQvvH+Ozvl2DoB/YfC7/sO3a
+TMsulGyOYJfVsIoiH9fs+oisfi+okMv+zyGkYBMB2U17MRvTJ0NQNoohGPvWgN+0okxjDgclK7gtGHuz
+oY9odm+XVslrPXfi2AtXMB1rGm0T1xgw8FILAKBtbVBUFAjLE/4HA991/eZPPNF1V+dcFHnXWT0/X7Cy
+yfHsU/77NIezZir+QHMos+Lqd2hWlCk5p7qfFKF5TvAbskbTvbk5qSpQE0ErXFjWzMwfy0P/P9y0k91u
+ieVhcYrYc/FixJ6LKYi5ac5n9N4PnWR3YnrTjjW6CeIvwseC5mAbfdcQNfrY6BqwPPT2WPbrl+Lml/Tg
+pnWSddh/f+IPgz+7hgR7dfoBJ/iGJxnwjkoeUWmO9fMacRLFXpL5XgrRNou32ekJvlA8SFhNTKMl8MFL
+Wo53w0jgpG0oM4SRieV+4LC9D3z3mcypv75z6H8aUI2w52LUaZrImlrLijBZVVTkc2s2Oz2d8LxUlGbk
+fusHK2s2M9eDE67OMxwedXNvGXyqnoY+mEmbMYxT76zZwrJQ5L+y6uL/AAAA//9VMj+oMQkAAA==
 `,
 	},
 

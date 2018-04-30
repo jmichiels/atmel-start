@@ -48,28 +48,27 @@ list(APPEND ATMEL_START_INCLUDE_DIRS
     {{- end}}
 )
 
-macro(add_atmel_start_executable target_name)
+macro(atstart_add_executable target_name)
 
-    set(elf_file ${target_name}.elf)
-    set(bin_file ${target_name}.bin)
+	set(elf_name ${target_name}.elf)
+	set(bin_name ${target_name}.bin)
 
-    # Outputs '.elf' file.
-    add_executable(${elf_file} ${ARGN} ${ATMEL_START_SOURCE_FILES})
+	set(elf_path ${CMAKE_BINARY_DIR}/${elf_name})
+	set(bin_path ${CMAKE_BINARY_DIR}/${bin_name})
 
-    # Directories to include to compile the '.elf'.
-    target_include_directories(${elf_file} PUBLIC ${ATMEL_START_INCLUDE_DIRS})
+    # Outputs elf file.
+    add_executable(${target_name} ${ARGN} ${ATMEL_START_SOURCE_FILES})
 
-    # Outputs '.bin' file.
-	add_custom_target(
-		${bin_file}
-		COMMAND ${CMAKE_OBJCOPY} -O binary ${elf_file} ${bin_file}
-		DEPENDS ${elf_file}
+	# Rename the elf file.
+	set_target_properties(${target_name} PROPERTIES OUTPUT_NAME ${elf_name})
+
+    # Directories to include to compile the elf.
+    target_include_directories(${target_name} PUBLIC ${ATMEL_START_INCLUDE_DIRS})
+
+    # Generate bin file.
+	add_custom_command(
+		TARGET ${target_name} POST_BUILD
+		COMMAND ${CMAKE_OBJCOPY} -O binary ${elf_path} ${bin_path}
 	)
 
-	# Outputs all files.
-    add_custom_target(
-        ${target_name}
-        DEPENDS ${elf_file} ${bin_file}
-    )
-
-endmacro(add_atmel_start_executable)
+endmacro(atstart_add_executable)

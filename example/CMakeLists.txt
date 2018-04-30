@@ -11,5 +11,5 @@ add_atmel_start_executable(example main.c)
 add_custom_target(
     upload
     COMMAND bossac -i -d -e -w -R -v ${CMAKE_BINARY_DIR}/example.bin
-    DEPENDS example.bin
+    DEPENDS ${CMAKE_BINARY_DIR}/example.bin
 )
