@@ -5,8 +5,7 @@
 extern "C" {
 #endif
 
-#include "include/driver_init.h"
-#include "include/atmel_start_pins.h"
+#include "driver_init.h"
 
 /**
  * Initializes MCU, drivers and middleware in the project

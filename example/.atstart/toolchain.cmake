@@ -26,29 +26,55 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 set(ATMEL_START_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 # Linker script.
-set(LINKER_SCRIPT "${ATMEL_START_DIR}/")
+set(LINKER_SCRIPT "${ATMEL_START_DIR}/samd21a/gcc/gcc/samd21g18a_flash.ld")
 # Common compiler and linker flags.
-set(COMMON_FLAGS "-mthumb -mcpu=")
+set(COMMON_FLAGS "-mthumb -mcpu=cortex-m0plus")
 # Set compiler flags.
-set(CMAKE_C_FLAGS  "${COMMON_FLAGS} -Os -ffunction-sections -mlong-calls -g3 -Wall -std=gnu99 -D__mega128__")
+set(CMAKE_C_FLAGS  "${COMMON_FLAGS} -Os -ffunction-sections -mlong-calls -g3 -Wall -std=gnu99 -D__SAMD21G18A__")
 # Set linker flags.
 set(CMAKE_EXE_LINKER_FLAGS "${COMMON_FLAGS} -Wl,--start-group -lm -Wl,--end-group --specs=nano.specs -Wl,--gc-sections -T${LINKER_SCRIPT}")
 
 # Source files extracted from 'gcc/Makefile'.
 list(APPEND ATMEL_START_SOURCE_FILES
     "${ATMEL_START_DIR}/atmel_start.c"
-    "${ATMEL_START_DIR}/driver_isr.c"
-    "${ATMEL_START_DIR}/src/driver_init.c"
-    "${ATMEL_START_DIR}/src/protected_io.c"
+    "${ATMEL_START_DIR}/driver_init.c"
+    "${ATMEL_START_DIR}/examples/driver_examples.c"
+    "${ATMEL_START_DIR}/hal/src/hal_atomic.c"
+    "${ATMEL_START_DIR}/hal/src/hal_delay.c"
+    "${ATMEL_START_DIR}/hal/src/hal_gpio.c"
+    "${ATMEL_START_DIR}/hal/src/hal_init.c"
+    "${ATMEL_START_DIR}/hal/src/hal_io.c"
+    "${ATMEL_START_DIR}/hal/src/hal_sleep.c"
+    "${ATMEL_START_DIR}/hal/utils/src/utils_assert.c"
+    "${ATMEL_START_DIR}/hal/utils/src/utils_event.c"
+    "${ATMEL_START_DIR}/hal/utils/src/utils_list.c"
+    "${ATMEL_START_DIR}/hal/utils/src/utils_syscalls.c"
+    "${ATMEL_START_DIR}/hpl/core/hpl_core_m0plus_base.c"
+    "${ATMEL_START_DIR}/hpl/core/hpl_init.c"
+    "${ATMEL_START_DIR}/hpl/dmac/hpl_dmac.c"
+    "${ATMEL_START_DIR}/hpl/gclk/hpl_gclk.c"
+    "${ATMEL_START_DIR}/hpl/pm/hpl_pm.c"
+    "${ATMEL_START_DIR}/hpl/sysctrl/hpl_sysctrl.c"
+    "${ATMEL_START_DIR}/samd21a/gcc/gcc/startup_samd21.c"
+    "${ATMEL_START_DIR}/samd21a/gcc/system_samd21.c"
 )
 
 # Include directories extracted from 'gcc/Makefile'.
 list(APPEND ATMEL_START_INCLUDE_DIRS
     "${ATMEL_START_DIR}/"
+    "${ATMEL_START_DIR}/CMSIS/Include"
     "${ATMEL_START_DIR}/config"
-    "${ATMEL_START_DIR}/include"
-    "${ATMEL_START_DIR}/utils"
-    "${ATMEL_START_DIR}/utils/assembler"
+    "${ATMEL_START_DIR}/examples"
+    "${ATMEL_START_DIR}/hal/include"
+    "${ATMEL_START_DIR}/hal/utils/include"
+    "${ATMEL_START_DIR}/hpl/core"
+    "${ATMEL_START_DIR}/hpl/dmac"
+    "${ATMEL_START_DIR}/hpl/gclk"
+    "${ATMEL_START_DIR}/hpl/pm"
+    "${ATMEL_START_DIR}/hpl/port"
+    "${ATMEL_START_DIR}/hpl/sysctrl"
+    "${ATMEL_START_DIR}/hri"
+    "${ATMEL_START_DIR}/samd21a/include"
 )
 
 macro(add_atmel_start_executable target_name)

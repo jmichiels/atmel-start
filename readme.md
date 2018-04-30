@@ -25,7 +25,7 @@ This will generate the code, download it and extract in a `.atstart` directory. 
 $ cd build
 $ cmake -DCMAKE_TOOLCHAIN_FILE="../.atstart/toolchain.cmake" ..
 ```
-See [`example/CMakeLists.txt`](example/CMakeLists.txt) for an example.
+See `CMakeLists.txt` in the [example](example).
 
 **Edit the Atmel Start configuration**
 
@@ -33,4 +33,4 @@ You can edit an existing Atmel Start `atstart.yaml` configuration file (to add s
 ```
 $ atstart open
 ``` 
-As for `init`, this will open Atmel Start in a new Chrome Window. You will need to call `pull` again in order for the code to reflect the new configuration.
+As for `init`, this will open Atmel Start in a new Chrome Window. You will have to call `pull` again in order for the code to reflect the updated configuration.

@@ -27,34 +27,93 @@ endif
 # List the subdirectories for creating object files
 SUB_DIRS +=  \
  \
-src
+samd21a/gcc/gcc \
+hpl/dmac \
+hal/src \
+samd21a/gcc \
+hpl/pm \
+hpl/sysctrl \
+hal/utils/src \
+examples \
+hpl/gclk \
+hpl/core
 
 # List the object files
 OBJS +=  \
-driver_isr.o \
+hal/src/hal_io.o \
+samd21a/gcc/gcc/startup_samd21.o \
+hal/utils/src/utils_syscalls.o \
+hal/src/hal_delay.o \
+hpl/pm/hpl_pm.o \
+hpl/core/hpl_init.o \
+samd21a/gcc/system_samd21.o \
+hpl/core/hpl_core_m0plus_base.o \
+hal/utils/src/utils_assert.o \
+hpl/dmac/hpl_dmac.o \
+hpl/sysctrl/hpl_sysctrl.o \
+hpl/gclk/hpl_gclk.o \
+hal/src/hal_init.o \
 main.o \
-src/driver_init.o \
+hal/utils/src/utils_list.o \
+examples/driver_examples.o \
+driver_init.o \
+hal/src/hal_gpio.o \
+hal/utils/src/utils_event.o \
+hal/src/hal_sleep.o \
 atmel_start.o \
-src/protected_io.o
+hal/src/hal_atomic.o
 
 OBJS_AS_ARGS +=  \
-"driver_isr.o" \
+"hal/src/hal_io.o" \
+"samd21a/gcc/gcc/startup_samd21.o" \
+"hal/utils/src/utils_syscalls.o" \
+"hal/src/hal_delay.o" \
+"hpl/pm/hpl_pm.o" \
+"hpl/core/hpl_init.o" \
+"samd21a/gcc/system_samd21.o" \
+"hpl/core/hpl_core_m0plus_base.o" \
+"hal/utils/src/utils_assert.o" \
+"hpl/dmac/hpl_dmac.o" \
+"hpl/sysctrl/hpl_sysctrl.o" \
+"hpl/gclk/hpl_gclk.o" \
+"hal/src/hal_init.o" \
 "main.o" \
-"src/driver_init.o" \
+"hal/utils/src/utils_list.o" \
+"examples/driver_examples.o" \
+"driver_init.o" \
+"hal/src/hal_gpio.o" \
+"hal/utils/src/utils_event.o" \
+"hal/src/hal_sleep.o" \
 "atmel_start.o" \
-"src/protected_io.o"
+"hal/src/hal_atomic.o"
 
 # List the dependency files
 DEPS := $(OBJS:%.o=%.d)
 
 DEPS_AS_ARGS +=  \
-"driver_isr.d" \
-"src/protected_io.d" \
-"atmel_start.d" \
+"samd21a/gcc/gcc/startup_samd21.d" \
+"hal/src/hal_gpio.d" \
+"hal/src/hal_io.d" \
+"hal/utils/src/utils_syscalls.d" \
+"hpl/core/hpl_core_m0plus_base.d" \
+"hal/utils/src/utils_list.d" \
+"hpl/dmac/hpl_dmac.d" \
+"hal/utils/src/utils_assert.d" \
+"hal/src/hal_delay.d" \
+"hpl/core/hpl_init.d" \
+"hpl/sysctrl/hpl_sysctrl.d" \
+"hpl/gclk/hpl_gclk.d" \
+"hal/src/hal_init.d" \
+"driver_init.d" \
+"samd21a/gcc/system_samd21.d" \
 "main.d" \
-"src/driver_init.d"
+"examples/driver_examples.d" \
+"hal/src/hal_sleep.d" \
+"hal/utils/src/utils_event.d" \
+"hal/src/hal_atomic.d" \
+"hpl/pm/hpl_pm.d" \
+"atmel_start.d"
 
-MAKEFILE_DIR := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 OUTPUT_FILE_NAME :=AtmelStart
 QUOTE := "
 OUTPUT_FILE_PATH +=$(OUTPUT_FILE_NAME).elf
@@ -72,57 +131,52 @@ all: $(SUB_DIRS) $(OUTPUT_FILE_PATH)
 
 $(OUTPUT_FILE_PATH): $(OBJS)
 	@echo Building target: $@
-	@echo Invoking: AVR/GNU Linker
-	$(QUOTE)avr-gcc$(QUOTE) -o $(OUTPUT_FILE_NAME).elf $(OBJS_AS_ARGS) -Wl,--start-group -lm -Wl,--end-group \
--Wl,-Map="$(OUTPUT_FILE_NAME).map" -Wl,--gc-sections \
--mmcu=atmega128 -B "$(MAKEFILE_DIR)../gcc/dev/atmega128" \
--L"../gcc/dev/atmega128/avr51"  \
--l:libatmega128.a 
+	@echo Invoking: ARM/GNU Linker
+	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -o $(OUTPUT_FILE_NAME).elf $(OBJS_AS_ARGS) -Wl,--start-group -lm -Wl,--end-group -mthumb \
+-Wl,-Map="$(OUTPUT_FILE_NAME).map" --specs=nano.specs -Wl,--gc-sections -mcpu=cortex-m0plus \
+ \
+ \
+-T"../samd21a/gcc/gcc/samd21g18a_flash.ld" \
+-L"../samd21a/gcc/gcc"
 	@echo Finished building target: $@
 
-	"avr-objcopy" -O binary "$(OUTPUT_FILE_NAME).elf" "$(OUTPUT_FILE_NAME).bin"
-	"avr-objcopy" -O ihex -R .eeprom -R .fuse -R .lock -R .signature -R .user_signatures \
+	"arm-none-eabi-objcopy" -O binary "$(OUTPUT_FILE_NAME).elf" "$(OUTPUT_FILE_NAME).bin"
+	"arm-none-eabi-objcopy" -O ihex -R .eeprom -R .fuse -R .lock -R .signature  \
         "$(OUTPUT_FILE_NAME).elf" "$(OUTPUT_FILE_NAME).hex"
-	"avr-objcopy" -j .eeprom --set-section-flags=.eeprom=alloc,load --change-section-lma \
+	"arm-none-eabi-objcopy" -j .eeprom --set-section-flags=.eeprom=alloc,load --change-section-lma \
         .eeprom=0 --no-change-warnings -O binary "$(OUTPUT_FILE_NAME).elf" \
         "$(OUTPUT_FILE_NAME).eep" || exit 0
-	"avr-objdump" -h -S "$(OUTPUT_FILE_NAME).elf" > "$(OUTPUT_FILE_NAME).lss"
-	"avr-size" "$(OUTPUT_FILE_NAME).elf"
+	"arm-none-eabi-objdump" -h -S "$(OUTPUT_FILE_NAME).elf" > "$(OUTPUT_FILE_NAME).lss"
+	"arm-none-eabi-size" "$(OUTPUT_FILE_NAME).elf"
 
-# Compiler target(s)
+# Compiler targets
 
 
 %.o: %.c
 	@echo Building file: $<
-	@echo AVR/GNU C Compiler
-	$(QUOTE)avr-gcc$(QUOTE) -x c -DF_CPU=8000000 -DDEBUG -Os -ffunction-sections -g3 -Wall -c -std=gnu99 \
--mmcu=atmega128 -B "$(MAKEFILE_DIR)../gcc/dev/atmega128" \
-    -D__mega128__ \
--I"../config" -I"../include" -I"../utils" -I"../utils/assembler" -I"../" -I"../include"  \
+	@echo ARM/GNU C Compiler
+	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
+-D__SAMD21G18A__ -mcpu=cortex-m0plus  \
+-I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
-
 	@echo Finished building: $<
 
 %.o: %.s
 	@echo Building file: $<
-	@echo AVR/GNU Assembler
-	$(QUOTE)avr-gcc$(QUOTE) -x assembler-with-cpp -DF_CPU=8000000 -DDEBUG -Os -ffunction-sections -g3 -Wall -c -std=gnu99 \
--mmcu=atmega128 -B "$(MAKEFILE_DIR)../gcc/dev/atmega128" \
-    -D__mega128__ \
--I"../config" -I"../include" -I"../utils" -I"../utils/assembler" -I"../" -I"../include"  \
+	@echo ARM/GNU Assembler
+	$(QUOTE)arm-none-eabi-as$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
+-D__SAMD21G18A__ -mcpu=cortex-m0plus  \
+-I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
-
 	@echo Finished building: $<
 
 %.o: %.S
 	@echo Building file: $<
-	@echo AVR/GNU Preprocessing Assembler
-	$(QUOTE)avr-gcc$(QUOTE) -x assembler-with-cpp -DF_CPU=8000000 -DDEBUG -Os -ffunction-sections -g3 -Wall -c -std=gnu99 \
--mmcu=atmega128 -B "$(MAKEFILE_DIR)../gcc/dev/atmega128" \
-    -D__mega128__ \
--I"../config" -I"../include" -I"../utils" -I"../utils/assembler" -I"../" -I"../include"  \
+	@echo ARM/GNU Preprocessing Assembler
+	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
+-D__SAMD21G18A__ -mcpu=cortex-m0plus  \
+-I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
-
 	@echo Finished building: $<
 
 # Detect changes in the dependent files and recompile the respective object files.
