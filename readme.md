@@ -19,13 +19,22 @@ This will open a Chrome window and create a new configuration file `atstart.yaml
 ```
 $ atstart pull
 ``` 
-This will generate the code, download it and extract in a `.atstart` directory. The code is the same as the one you would get using *Export Project* in Atmel Start. This will also generate ` toolchain.cmake` which you can then use to build your project:
+This will generate the code, download it and extract in a `.atstart` directory. The code is the same as the one you would get using *Export Project* in Atmel Start. This will also generate ` toolchain.cmake` which you can then use to build your project.
+
+**Create your project files**
+
+Create a main code file for your project. You can copy `.atstart/main.c` down to your project directory as a starter if you wish.
+
+Create a `CMakeLists.txt` file that describes your project. Specify your executable and main file using the `atstart_add_executable` macro in that file. See `CMakeLists.txt` in the [example](example).
+
+**Build your project**
 
 ```
+$ mkdir build
 $ cd build
 $ cmake -DCMAKE_TOOLCHAIN_FILE="../.atstart/toolchain.cmake" ..
+$ make
 ```
-See `CMakeLists.txt` in the [example](example).
 
 **Edit the Atmel Start configuration**
 
@@ -33,4 +42,4 @@ You can edit an existing Atmel Start `atstart.yaml` configuration file (to add s
 ```
 $ atstart open
 ``` 
-As for `init`, this will open Atmel Start in a new Chrome Window. You will have to call `pull` again in order for the code to reflect the updated configuration.
+As with `init`, this will open Atmel Start in a new Chrome Window. You will have to call `pull` again in order for the code to reflect the updated configuration.
