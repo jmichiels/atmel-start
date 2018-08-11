@@ -31,6 +31,7 @@ set(LINKER_SCRIPT "${ATMEL_START_DIR}/{{.LinkerScript}}")
 set(COMMON_FLAGS "-mthumb -mcpu={{.CPU}}")
 # Set compiler flags.
 set(CMAKE_C_FLAGS  "${COMMON_FLAGS} -Os -ffunction-sections -mlong-calls -g3 -Wall -std=gnu99 -D__{{.Device}}__")
+set(CMAKE_CXX_FLAGS  "${COMMON_FLAGS} -Os -ffunction-sections -fdata-sections -mlong-calls -g3 -Wall -std=gnu++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions -D__{{.Device}}__")
 # Set linker flags.
 set(CMAKE_EXE_LINKER_FLAGS "${COMMON_FLAGS} -Wl,--start-group -lm -Wl,--end-group --specs=nano.specs -Wl,--gc-sections -T${LINKER_SCRIPT}")
 
