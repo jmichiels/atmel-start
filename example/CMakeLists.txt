@@ -5,7 +5,7 @@ project(example)
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--section-start=.text=0x2000")
 
 # Target built with atmel start configuration
-add_atmel_start_executable(example main.c)
+atstart_add_executable(example main.c)
 
 # Target to upload binary using bossac.
 add_custom_target(
