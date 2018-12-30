@@ -3,12 +3,14 @@ package atmelstart
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
-
+	"os/exec"
 	"path"
+	"path/filepath"
 
 	"archive/zip"
 
@@ -43,6 +45,53 @@ const (
 	// Default name of the configuration file.
 	configFileName = `atstart.yaml`
 )
+
+func findParentDirWith(startDir string, searchedFile string, maxDepth int) (string, error) {
+	if maxDepth == 0 {
+		return ``, errors.Errorf("'%s' not found, max depth reached")
+	}
+	files, err := ioutil.ReadDir(startDir)
+	if err != nil {
+		return ``, errors.Wrap(err, "read directory")
+	}
+	for _, file := range files {
+		if file.Name() == searchedFile {
+			return startDir, nil
+		}
+	}
+	return findParentDirWith(filepath.Dir(startDir), searchedFile, maxDepth-1)
+}
+
+func findProjectRootPath(startDir string) (string, error) {
+	root, err := findParentDirWith(startDir, configFileName, 10)
+	if err != nil {
+		return ``, errors.Wrap(err, "find project root")
+	}
+	return root, nil
+}
+
+func findToolchainFilePath(startDir string) (string, error) {
+	rootPath, err := findProjectRootPath(startDir)
+	if err != nil {
+		return ``, errors.Wrap(err, "find toolchain file")
+	}
+	return filepath.Join(rootPath, hiddenDirName, "toolchain.cmake"), nil
+}
+
+func CMake(args []string) error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return errors.Wrap(err, "get working directory")
+	}
+	toolchain, err := findToolchainFilePath(wd)
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(`cmake`, append([]string{fmt.Sprintf(`-DCMAKE_TOOLCHAIN_FILE="%s"`, toolchain)}, args...)...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return errors.Wrap(cmd.Run(), "run CMake")
+}
 
 func Generate() error {
 	var configYAML configYAML
