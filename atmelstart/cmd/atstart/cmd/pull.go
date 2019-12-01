@@ -9,7 +9,7 @@ import (
 // pullCmd represents the pull command
 var pullCmd = &cobra.Command{
 	Use:   "pull",
-	Short: "Generate code given the configuration",
+	Short: "Pull generated code for this project",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := atmelstart.Generate(); err != nil {
 			logrus.Fatal(err)
