@@ -1,5 +1,5 @@
 
-# Atmel Start
+# Atmel START
 
 This projects consists in a command-line tool to streamline work with the [Atmel Start](http://start.atmel.com/) code generator, as well as a CMake toolchain generator which allows to integrate code generated using Atmel Start in a CMake project (for use in the [JetBrains CLion](https://www.jetbrains.com/clion/) IDE for example)
 

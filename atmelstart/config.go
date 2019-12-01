@@ -83,11 +83,11 @@ func CMake(args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "get working directory")
 	}
-	toolchain, err := findToolchainFilePath(wd)
+	toolchainAbs, err := findToolchainFilePath(wd)
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command(`cmake`, append([]string{fmt.Sprintf(`-DCMAKE_TOOLCHAIN_FILE="%s"`, toolchain)}, args...)...)
+	cmd := exec.Command(`cmake`, append([]string{fmt.Sprintf(`-DCMAKE_TOOLCHAIN_FILE="%s"`, toolchainAbs)}, args...)...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return errors.Wrap(cmd.Run(), "run CMake")

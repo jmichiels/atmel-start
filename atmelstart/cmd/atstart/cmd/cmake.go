@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// cmakeCmd represents the pull command
+// cmakeCmd represents the cmake command
 var cmakeCmd = &cobra.Command{
 	Use:   "cmake",
 	Short: "Build the Atmel Start project using CMake",

@@ -6,6 +6,8 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/base64"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -100,7 +102,24 @@ func (f *_escFile) Close() error {
 }
 
 func (f *_escFile) Readdir(count int) ([]os.FileInfo, error) {
-	return nil, nil
+	if !f.isDir {
+		return nil, fmt.Errorf(" escFile.Readdir: '%s' is not directory", f.name)
+	}
+
+	fis, ok := _escDirs[f.local]
+	if !ok {
+		return nil, fmt.Errorf(" escFile.Readdir: '%s' is directory, but we have no info about content of this dir, local=%s", f.name, f.local)
+	}
+	limit := count
+	if count <= 0 || limit > len(fis) {
+		limit = len(fis)
+	}
+
+	if len(fis) == 0 && count > 0 {
+		return nil, io.EOF
+	}
+
+	return fis[0:limit], nil
 }
 
 func (f *_escFile) Stat() (os.FileInfo, error) {
@@ -191,37 +210,42 @@ func FSMustString(useLocal bool, name string) string {
 var _escData = map[string]*_escFile{
 
 	"/templates/toolchain.cmake": {
+		name:    "toolchain.cmake",
 		local:   "templates/toolchain.cmake",
-		size:    2353,
-		modtime: 1525118353,
+		size:    2537,
+		modtime: 1547353474,
 		compressed: `
-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
+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
 `,
 	},
 
-	"/": {
-		isDir: true,
-		local: "",
-	},
-
 	"/templates": {
+		name:  "templates",
+		local: `templates`,
 		isDir: true,
-		local: "templates",
+	},
+}
+
+var _escDirs = map[string][]os.FileInfo{
+
+	"templates": {
+		_escData["/templates/toolchain.cmake"],
 	},
 }
