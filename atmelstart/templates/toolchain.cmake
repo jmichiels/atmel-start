@@ -1,14 +1,21 @@
+# GENERATED FILE - DO NOT EDIT
+
 cmake_minimum_required(VERSION 3.0)
+
+# Find compiler.
+find_program(ARM_CC arm-none-eabi-gcc)
+find_program(ARM_CXX arm-none-eabi-g++)
+find_program(ARM_OBJCOPY arm-none-eabi-objcopy)
 
 # 'Generic' for embedded system without an OS.
 set(CMAKE_SYSTEM_NAME Generic)
 
 # Set C compiler.
-set(CMAKE_C_COMPILER arm-none-eabi-gcc)
+set(CMAKE_C_COMPILER ${ARM_CC})
 # Set C++ compiler.
-set(CMAKE_C++_COMPILER arm-none-eabi-g++)
+set(CMAKE_C++_COMPILER ${ARM_CXX})
 # Set objcopy utility.
-set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
+set(CMAKE_OBJCOPY ${ARM_OBJCOPY})
 
 # Prevents linking issue while testing compiler.
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
