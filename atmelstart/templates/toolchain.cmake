@@ -35,12 +35,15 @@ set(ATMEL_START_DIR ${CMAKE_CURRENT_LIST_DIR})
 # Linker script.
 set(LINKER_SCRIPT "${ATMEL_START_DIR}/{{.LinkerScript}}")
 # Common compiler and linker flags.
-set(COMMON_FLAGS "-mthumb -mcpu={{.CPU}}")
-# Set compiler flags.
-set(CMAKE_C_FLAGS  "${COMMON_FLAGS} -Os -ffunction-sections -mlong-calls -g3 -Wall -std=gnu99 -D__{{.Device}}__")
-set(CMAKE_CXX_FLAGS  "${COMMON_FLAGS} -Os -ffunction-sections -fdata-sections -mlong-calls -g3 -Wall -std=gnu++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions -D__{{.Device}}__")
+set(COMMON_BUILD_LINK_FLAGS "-mthumb -mcpu={{.CPU}}")
+# Common c and c++ flags.
+set(COMMON_C_CXX_FLAGS "${COMMON_FLAGS} -Os -ffunction-sections -fdata-sections -mlong-calls  -g3 -Wall -D__{{.Device}}__")
+# Set C compiler flags.
+set(CMAKE_C_FLAGS  "${COMMON_C_CXX_FLAGS} -std=gnu99 ")
+# Set C++ compiler flags.
+set(CMAKE_CXX_FLAGS  "${COMMON_C_CXX_FLAGS} -std=gnu++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions")
 # Set linker flags.
-set(CMAKE_EXE_LINKER_FLAGS "${COMMON_FLAGS} -Wl,--start-group -lm -Wl,--end-group --specs=nano.specs -Wl,--gc-sections -T${LINKER_SCRIPT}")
+set(CMAKE_EXE_LINKER_FLAGS "${COMMON_BUILD_LINK_FLAGS} -Wl,--start-group -lm -Wl,--end-group --specs=nano.specs -Wl,--gc-sections -T${LINKER_SCRIPT}")
 
 # Source files extracted from 'gcc/Makefile'.
 list(APPEND ATMEL_START_SOURCE_FILES
