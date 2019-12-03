@@ -1,4 +1,4 @@
-module github.com/jmichiels/AtmelStart
+module github.com/jmichiels/atmel-start
 
 require (
 	github.com/disintegration/imaging v1.4.2 // indirect

@@ -37,7 +37,7 @@ set(LINKER_SCRIPT "${ATMEL_START_DIR}/{{.LinkerScript}}")
 # Common compiler and linker flags.
 set(COMMON_BUILD_LINK_FLAGS "-mthumb -mcpu={{.CPU}}")
 # Common c and c++ flags.
-set(COMMON_C_CXX_FLAGS "${COMMON_FLAGS} -Os -ffunction-sections -fdata-sections -mlong-calls  -g3 -Wall -D__{{.Device}}__")
+set(COMMON_C_CXX_FLAGS "${COMMON_BUILD_LINK_FLAGS} -Os -ffunction-sections -fdata-sections -mlong-calls  -g3 -Wall -D__{{.Device}}__")
 # Set C compiler flags.
 set(CMAKE_C_FLAGS  "${COMMON_C_CXX_FLAGS} -std=gnu99 ")
 # Set C++ compiler flags.

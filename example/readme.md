@@ -27,7 +27,7 @@ $ cmake -DCMAKE_TOOLCHAIN_FILE="../.atstart/toolchain.cmake" ..
 -- Detecting CXX compile features - done
 -- Configuring done
 -- Generating done
--- Build files have been written to: github.com/jmichiels/AtmelStart/example/build
+-- Build files have been written to: github.com/jmichiels/atmel-start/example/build
 ```
 **Build with Make** 
 ```

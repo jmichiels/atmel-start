@@ -7,7 +7,7 @@ This projects consists in a command-line tool to streamline work with the [Atmel
 
 **Install the command line tool**
 ```
-$ go get -u github.com/jmichiels/AtmelStart/atmelstart/...
+$ go get -u github.com/jmichiels/atmel-start/atmelstart/...
 ```
 **Initialize the Atmel Start configuration**
 ```
