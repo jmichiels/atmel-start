@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"archive/zip"
 
@@ -219,6 +220,7 @@ func (conf *configYAML) requestJSON() (*configJSON, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "encode json")
 	}
+	encoded = []byte(strings.Replace(string(encoded), `"external":false,"external_frequency":0,`, "", -1))
 	encoded = append([]byte(`{`+jsonTweak+`,`), encoded[1:]...)
 	return &configJSON{byteSlice(encoded)}, nil
 }
