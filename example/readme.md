@@ -2,69 +2,74 @@
 
 This example makes the built-in LED of an [Adafruit Feather M0](https://learn.adafruit.com/adafruit-feather-m0-basic-proto/overview) blink. 
 
-**Generate the Atmel Start code** 
+## Generate the Atmel Start code
 ```
 $ atstart pull
 ```
 
-**Configure with CMake** 
+## Configure with CMake
 ```
-$ mkdir build && cd build
-$ cmake -DCMAKE_TOOLCHAIN_FILE="../.atstart/toolchain.cmake" ..
--- The C compiler identification is GNU 4.8.4
--- The CXX compiler identification is GNU 4.8.4
--- Check for working C compiler: /usr/local/bin/arm-none-eabi-gcc
--- Check for working C compiler: /usr/local/bin/arm-none-eabi-gcc -- works
+$ cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=".atstart/toolchain.cmake"
+-- Using GCC ARM from: /path/to/gcc-arm-installation
+-- The C compiler identification is GNU 10.2.1
+-- The CXX compiler identification is GNU 10.2.1
 -- Detecting C compiler ABI info
 -- Detecting C compiler ABI info - done
+-- Check for working C compiler: /path/to/gcc-arm-installation/bin/arm-none-eabi-gcc - skipped
 -- Detecting C compile features
 -- Detecting C compile features - done
--- Check for working CXX compiler: /usr/local/bin/arm-none-eabi-g++
--- Check for working CXX compiler: /usr/local/bin/arm-none-eabi-g++ -- works
 -- Detecting CXX compiler ABI info
 -- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /path/to/gcc-arm-installation/bin/arm-none-eabi-g++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
 -- Configuring done
 -- Generating done
--- Build files have been written to: github.com/jmichiels/AtmelStart/example/build
+-- Build files have been written to: github.com/jmichiels/atmel-start/example/build
 ```
-**Build with Make** 
+
+## Build
+Tell CMake to run the make command and build the `example` target. You can leave out `-- example` to build the `all` target.
 ```
-$ make example.bin
-Scanning dependencies of target example.elf
-[  4%] Building C object CMakeFiles/example.elf.dir/main.c.obj
-[  8%] Building C object CMakeFiles/example.elf.dir/.atstart/atmel_start.c.obj
-[ 13%] Building C object CMakeFiles/example.elf.dir/.atstart/driver_init.c.obj
-[ 17%] Building C object CMakeFiles/example.elf.dir/.atstart/examples/driver_examples.c.obj
-[ 21%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/src/hal_atomic.c.obj
-[ 26%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/src/hal_delay.c.obj
-[ 30%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/src/hal_gpio.c.obj
-[ 34%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/src/hal_init.c.obj
-[ 39%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/src/hal_io.c.obj
-[ 43%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/src/hal_sleep.c.obj
-[ 47%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/utils/src/utils_assert.c.obj
-[ 52%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/utils/src/utils_event.c.obj
-[ 56%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/utils/src/utils_list.c.obj
-[ 60%] Building C object CMakeFiles/example.elf.dir/.atstart/hal/utils/src/utils_syscalls.c.obj
-[ 65%] Building C object CMakeFiles/example.elf.dir/.atstart/hpl/core/hpl_core_m0plus_base.c.obj
-[ 69%] Building C object CMakeFiles/example.elf.dir/.atstart/hpl/core/hpl_init.c.obj
-[ 73%] Building C object CMakeFiles/example.elf.dir/.atstart/hpl/dmac/hpl_dmac.c.obj
-[ 78%] Building C object CMakeFiles/example.elf.dir/.atstart/hpl/gclk/hpl_gclk.c.obj
-[ 82%] Building C object CMakeFiles/example.elf.dir/.atstart/hpl/pm/hpl_pm.c.obj
-[ 86%] Building C object CMakeFiles/example.elf.dir/.atstart/hpl/sysctrl/hpl_sysctrl.c.obj
-[ 91%] Building C object CMakeFiles/example.elf.dir/.atstart/samd21a/gcc/gcc/startup_samd21.c.obj
-[ 95%] Building C object CMakeFiles/example.elf.dir/.atstart/samd21a/gcc/system_samd21.c.obj
+$ cmake --build build -- example
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/arnom/Projects/GitHub/github.com/jmichiels/atmel-start/example/build
+[  4%] Building C object .atstart/CMakeFiles/atstart.dir/atmel_start.c.obj
+[  8%] Building C object .atstart/CMakeFiles/atstart.dir/driver_init.c.obj
+[ 12%] Building C object .atstart/CMakeFiles/atstart.dir/examples/driver_examples.c.obj
+[ 16%] Building C object .atstart/CMakeFiles/atstart.dir/hal/src/hal_atomic.c.obj
+[ 20%] Building C object .atstart/CMakeFiles/atstart.dir/hal/src/hal_delay.c.obj
+[ 25%] Building C object .atstart/CMakeFiles/atstart.dir/hal/src/hal_gpio.c.obj
+[ 29%] Building C object .atstart/CMakeFiles/atstart.dir/hal/src/hal_init.c.obj
+[ 33%] Building C object .atstart/CMakeFiles/atstart.dir/hal/src/hal_io.c.obj
+[ 37%] Building C object .atstart/CMakeFiles/atstart.dir/hal/src/hal_sleep.c.obj
+[ 41%] Building C object .atstart/CMakeFiles/atstart.dir/hal/utils/src/utils_assert.c.obj
+[ 45%] Building C object .atstart/CMakeFiles/atstart.dir/hal/utils/src/utils_event.c.obj
+[ 50%] Building C object .atstart/CMakeFiles/atstart.dir/hal/utils/src/utils_list.c.obj
+[ 54%] Building C object .atstart/CMakeFiles/atstart.dir/hal/utils/src/utils_syscalls.c.obj
+[ 58%] Building C object .atstart/CMakeFiles/atstart.dir/hpl/core/hpl_core_m0plus_base.c.obj
+[ 62%] Building C object .atstart/CMakeFiles/atstart.dir/hpl/core/hpl_init.c.obj
+[ 66%] Building C object .atstart/CMakeFiles/atstart.dir/hpl/dmac/hpl_dmac.c.obj
+[ 70%] Building C object .atstart/CMakeFiles/atstart.dir/hpl/gclk/hpl_gclk.c.obj
+[ 75%] Building C object .atstart/CMakeFiles/atstart.dir/hpl/pm/hpl_pm.c.obj
+[ 79%] Building C object .atstart/CMakeFiles/atstart.dir/hpl/sysctrl/hpl_sysctrl.c.obj
+[ 83%] Building C object .atstart/CMakeFiles/atstart.dir/samd21a/gcc/gcc/startup_samd21.c.obj
+[ 87%] Building C object .atstart/CMakeFiles/atstart.dir/samd21a/gcc/system_samd21.c.obj
+[ 91%] Linking C static library libatstart.a
+[ 91%] Built target atstart
+[ 95%] Building C object CMakeFiles/example.dir/main.c.obj
 [100%] Linking C executable example.elf
-[100%] Built target example.elf
-Scanning dependencies of target example.bin
-[100%] Built target example.bin
+[100%] Built target example
 ```
-**Upload with [bossac](https://github.com/shumatech/BOSSA)** 
+
+## Upload with [bossac](https://github.com/shumatech/BOSSA)
 ```
-$ make upload
-[100%] Built target example.elf
-[100%] Built target example.bin
+$ cmake --build build -- upload
+Consolidate compiler generated dependencies of target atstart
+[ 91%] Built target atstart
+Consolidate compiler generated dependencies of target example
+[100%] Built target example
 Trying to connect on ttyACM0
 Set binary mode
 readWord(addr=0)=0x20007ffc

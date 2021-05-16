@@ -209,30 +209,57 @@ func FSMustString(useLocal bool, name string) string {
 
 var _escData = map[string]*_escFile{
 
+	"/templates/CMakeLists.txt": {
+		name:    "CMakeLists.txt",
+		local:   "templates/CMakeLists.txt",
+		size:    2309,
+		modtime: 1621175210,
+		compressed: `
+H4sIAAAAAAAC/7xV32+jRhB+918xylk65wFO1b1FuUgEk4TGv4RJm3taLcuAt4ZdurukthD/e8WCXceX
+a6O2uhe0mplv55uPj4GVdIuk5IKXdUkU/l5zhenklyBah8sFfHZ/+nw54oIVdYokr6lKJ5ej0QfwTIkF
+rA1VBpSUBlKukBmp9u5Io5l48TyYkXXsRTGZhhGMG3/uPQbEf4qiYBGTWbi2iRZ8z38IYOXFD3CxomYD
+RoJLje6uvoC7ZeQH33RkMkWgGrShhjMoeKKo2o9ompLhPBlugHXsxaE/AgD4AGtZK4aQ8QI14M4oygym
+kClZwsecsU9zusUu+9G1iKZxQFGRI7g99K5Dtq1NXoybsynbT03jtu3FEYsibduRpR/2Gh514v/MwFCV
+oyEH9U+Qx+lWT7ezYboTrkOvKVf/justVQiDJ4DJsuIFKpCV4VLoA60hTobwG5Sc0mzqMumPrKq/NI3r
+r556Ss6UkKZxp/jCGbYtIX1rr6qKPZgNQooZrQsDWUFzDWZDDdQa084eCQIXtshIWbAN5cK1RrZvFiqF
+L1zWutiPPkCyB0aLgosczIZrKClTcmSfB8qk1kiGdsS2u+wYvnvObposqwXrChyNrNfpkEmpod9Ey0KK
+3OmYHULj6/G1v5yvwllAZt7i/sm7D6785+ebKycT0jEbhTTVNEOnd72+eR9QGcPfWYo7hv2UFnCqQsHF
+9u8lmIWLxyC6chybc3Il6+owbVGeF6FIX5c4ukKmvwgqpGuP54icnYt44cRv23rGxRbVmilemcHilyMU
+af/Wrc8e6AuC331skKNARQ0CFSCT35CZ3kayNiAz2MtaQTC7s8HvGQqoSKGiWvdhBEFLPKJ7Dc9MxxRS
+gyTpnGzzVu5uhbFaG1l2xiupSCfDtLEX3QcxjJu+uoXVch2T26dwNh0q/OV87i2mx127vP3ZX66+tuAs
+IeGCqj2Mr/tryF04C66Od928TpBbbx2QhTc/LXETLoZGvy6jx3Bx3+kd+PEy+noGn4bRCfDd8sND8Pwj
+pd/g7kdIz7s+/0X4De7+N+HnVrItVgYyqSChbPsHVam2a54anvCCm/2ZXp0yuENWG5oUeFgJnc5WOPju
+Hp0M+Vf4yYGhvaGFceNF94u2Lz1dN/2vvPvdnSGGfq+b//U9nZWfSPD2QJd/BgAA///di55mBQkAAA==
+`,
+	},
+
 	"/templates/toolchain.cmake": {
 		name:    "toolchain.cmake",
 		local:   "templates/toolchain.cmake",
-		size:    2537,
-		modtime: 1547353474,
+		size:    4099,
+		modtime: 1621173184,
 		compressed: `
-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
+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
 `,
 	},
 
@@ -246,6 +273,7 @@ gxeuzj0cPkbs7LP4VD0MdbCdtm04db1zJjPHQZH/zKqz/wIAAP//haM09ukJAAA=
 var _escDirs = map[string][]os.FileInfo{
 
 	"templates": {
+		_escData["/templates/CMakeLists.txt"],
 		_escData["/templates/toolchain.cmake"],
 	},
 }
