@@ -1,75 +1,85 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 
-# 'Generic' for embedded system without an OS.
+# Toolchain file to configure the GCC ARM compiler
+# ------------------------------------------------------------------------------------
+# Inspired by the NXP MCUXpresso toolchain file,
+# as well as the one from https://github.com/vpetrigo/arm-cmake-toolchains
+
+# In order to use a specific version of GCC ARM rather than the one on the PATH, you
+# can pass the installation path to CMake using -DTOOLCHAIN_DIR=my/custom/path
+
+set(TOOLCHAIN_TRIPLET arm-none-eabi)
+if(WIN32)
+    set(TOOLCHAIN_EXT .exe)
+else()
+    set(TOOLCHAIN_EXT)
+endif()
+
+# Determine TOOLCHAIN_DIR (path to GCC ARM installation)
+if (NOT DEFINED TOOLCHAIN_DIR)
+   # If TOOLCHAIN_DIR is already set in the cache or via the command line, do not try to determine it's location
+   find_program(GCC_ARM_COMPILER_BIN ${TOOLCHAIN_TRIPLET}-gcc REQUIRED)
+   if (NOT GCC_ARM_COMPILER_BIN)
+      message(FATAL_ERROR "Unable to find ${TOOLCHAIN_TRIPLET}gcc. Please configure the TOOLCHAIN_DIR variable manually.")
+   endif()
+
+   # Find location where arm-none-eabi-gcc is installed
+   get_filename_component(TOOLCHAIN_DIR_TEMP ${GCC_ARM_COMPILER_BIN} REALPATH)
+   get_filename_component(TOOLCHAIN_DIR_TEMP ${TOOLCHAIN_DIR_TEMP} DIRECTORY)
+   get_filename_component(TOOLCHAIN_DIR_TEMP ${TOOLCHAIN_DIR_TEMP}/.. ABSOLUTE)
+   if (EXISTS ${TOOLCHAIN_DIR_TEMP})
+      set(TOOLCHAIN_DIR ${TOOLCHAIN_DIR_TEMP} CACHE PATH "GCC ARM compiler installation path")
+      message(STATUS "Using GCC ARM from: ${TOOLCHAIN_DIR}")
+   else()
+      message(FATAL_ERROR "Failed to determine GCC ARM location: ${TOOLCHAIN_DIR}")
+   endif()
+   unset(ARM_GCC CACHE)
+   unset(TOOLCHAIN_DIR_TEMP CACHE)
+endif()
+if (NOT DEFINED TOOLCHAIN_DIR OR NOT EXISTS ${TOOLCHAIN_DIR})
+   message(FATAL_ERROR "GCC ARM location not configured correctly: ${TOOLCHAIN_DIR}")
+endif()
+
+# Configure CMake variables
 set(CMAKE_SYSTEM_NAME Generic)
-
-# Set C compiler.
-set(CMAKE_C_COMPILER arm-none-eabi-gcc)
-# Set C++ compiler.
-set(CMAKE_C++_COMPILER arm-none-eabi-g++)
-# Set objcopy utility.
-set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
-
-# Prevents linking issue while testing compiler.
+set(CMAKE_SYSTEM_PROCESSOR ARM)
+set(CMAKE_EXECUTABLE_SUFFIX_C .elf)
+set(CMAKE_EXECUTABLE_SUFFIX_CXX .elf)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-
-# Set CMAKE_SYSROOT as find_program() root.
+set(CMAKE_SYSROOT ${TOOLCHAIN_DIR}/${TARGET_TRIPLET})
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-# Set CMAKE_FIND_ROOT_PATH as find_library() root.
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-# Set CMAKE_FIND_ROOT_PATH as find_file()/find_path() root.
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-# Set CMAKE_FIND_ROOT_PATH as find_package() root.
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
-# Atmel Start root directory.
-set(ATMEL_START_DIR ${CMAKE_CURRENT_LIST_DIR})
+# Configure compilers
+set(TOOLCHAIN_BIN_DIR ${TOOLCHAIN_DIR}/bin CACHE PATH "GCC ARM compiler bin path")
+set(CMAKE_C_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN_TRIPLET}-gcc${TOOLCHAIN_EXT})
+set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
+if (EXISTS ${CMAKE_C_COMPILER})
+   set(CMAKE_C_FLAGS_DEBUG_INIT "-g3 -Og -gdwarf -Wall -pedantic -DDEBUG")
+   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG_INIT}" CACHE STRING "" FORCE)
+   set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -Wall")
+   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE_INIT}" CACHE STRING "" FORCE)
+   set(CMAKE_C_FLAGS_MINSIZEREL_INIT "-Os -Wall")
+   set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL_INIT}" CACHE STRING "" FORCE)
+   set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT  "-O2 -g -Wall")
+   set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_ASM_FLAGS_RELWITHDEBINFO_INIT}" CACHE STRING "" FORCE)
+   set(CMAKE_ASM_FLAGS_DEBUG_INIT "-g" CACHE INTERNAL "ASM compiler flags Debug")
+else()
+   message(WARNING "C / ASM compiler not found: ${CMAKE_C_COMPILER}")
+endif()
 
-# Linker script.
-set(LINKER_SCRIPT "${ATMEL_START_DIR}/{{.LinkerScript}}")
-# Common compiler and linker flags.
-set(COMMON_FLAGS "-mthumb -mcpu={{.CPU}}")
-# Set compiler flags.
-set(CMAKE_C_FLAGS  "${COMMON_FLAGS} -Os -ffunction-sections -mlong-calls -g3 -Wall -std=gnu99 -D__{{.Device}}__")
-set(CMAKE_CXX_FLAGS  "${COMMON_FLAGS} -Os -ffunction-sections -fdata-sections -mlong-calls -g3 -Wall -std=gnu++14 -fno-threadsafe-statics -fno-rtti -fno-exceptions -D__{{.Device}}__")
-# Set linker flags.
-set(CMAKE_EXE_LINKER_FLAGS "${COMMON_FLAGS} -Wl,--start-group -lm -Wl,--end-group --specs=nano.specs -Wl,--gc-sections -T${LINKER_SCRIPT}")
-
-# Source files extracted from 'gcc/Makefile'.
-list(APPEND ATMEL_START_SOURCE_FILES
-    {{- range .SourceFiles}}
-    "${ATMEL_START_DIR}/{{.}}"
-    {{- end}}
-)
-
-# Include directories extracted from 'gcc/Makefile'.
-list(APPEND ATMEL_START_INCLUDE_DIRS
-    {{- range .IncludeDirs}}
-    "${ATMEL_START_DIR}/{{.}}"
-    {{- end}}
-)
-
-macro(atstart_add_executable target_name)
-
-	set(elf_name ${target_name}.elf)
-	set(bin_name ${target_name}.bin)
-
-	set(elf_path ${CMAKE_BINARY_DIR}/${elf_name})
-	set(bin_path ${CMAKE_BINARY_DIR}/${bin_name})
-
-    # Outputs elf file.
-    add_executable(${target_name} ${ARGN} ${ATMEL_START_SOURCE_FILES})
-
-	# Rename the elf file.
-	set_target_properties(${target_name} PROPERTIES OUTPUT_NAME ${elf_name})
-
-    # Directories to include to compile the elf.
-    target_include_directories(${target_name} PUBLIC ${ATMEL_START_INCLUDE_DIRS})
-
-    # Generate bin file.
-	add_custom_command(
-		TARGET ${target_name} POST_BUILD
-		COMMAND ${CMAKE_OBJCOPY} -O binary ${elf_path} ${bin_path}
-	)
-
-endmacro(atstart_add_executable)
+set(CMAKE_CXX_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN_TRIPLET}-g++${TOOLCHAIN_EXT})
+if (EXISTS ${CMAKE_CXX_COMPILER})
+   set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g3 -Og -gdwarf -Wall -pedantic -DDEBUG")
+   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG_INIT}" CACHE STRING "" FORCE)
+   set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -Wall")
+   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE_INIT}" CACHE STRING "" FORCE)
+   set(CMAKE_CXX_FLAGS_MINSIZEREL_INIT "-Os -Wall")
+   set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL_INIT}" CACHE STRING "" FORCE)
+   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT  "-O2 -g -Wall")
+   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_ASM_FLAGS_RELWITHDEBINFO_INIT}" CACHE STRING "" FORCE)
+else()
+   message(WARNING "C++ compiler not found: ${CMAKE_C_COMPILER}")
+endif()

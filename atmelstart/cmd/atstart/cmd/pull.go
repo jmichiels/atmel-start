@@ -14,7 +14,7 @@ var pullCmd = &cobra.Command{
 		if err := atmelstart.Generate(); err != nil {
 			logrus.Fatal(err)
 		}
-		if err := atmelstart.GenerateCMakeToolchain(); err != nil {
+		if err := atmelstart.GenerateCMakeFiles(); err != nil {
 			logrus.Fatal(err)
 		}
 	},

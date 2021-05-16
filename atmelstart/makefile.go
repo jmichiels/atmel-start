@@ -16,14 +16,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+var templateCMakeLists *template.Template
 var templateToolchain *template.Template
 
 func init() {
+	templateCMakeLists = templateMustParse("CMakeLists.txt")
 	templateToolchain = templateMustParse("toolchain.cmake")
 }
 
-func GenerateCMakeToolchain() error {
+func GenerateCMakeFiles() error {
 	pathMakefile := path.Join(hiddenDirName, `gcc/Makefile`)
+	pathCMakeLists := path.Join(hiddenDirName, `CMakeLists.txt`)
 	pathToolchain := path.Join(hiddenDirName, `toolchain.cmake`)
 
 	makefile, err := os.Open(pathMakefile)
@@ -35,6 +38,15 @@ func GenerateCMakeToolchain() error {
 	data := Data{}
 	if err := data.ReadMakefile(makefile); err != nil {
 		return errors.Wrap(err, "read makefile")
+	}
+
+	cMakeListsFile, err := os.Create(pathCMakeLists)
+	if err != nil {
+		return errors.Wrap(err, "open CMakeLists")
+	}
+	defer cMakeListsFile.Close()
+	if err := data.WriteCMakeLists(cMakeListsFile); err != nil {
+		return errors.Wrap(err, "write CMakeLists")
 	}
 
 	toolchainFile, err := os.Create(pathToolchain)
@@ -56,7 +68,7 @@ func templateMustParse(name string) *template.Template {
 	return tmpl
 }
 
-// Contains all the data we need from 'gcc/Makefile' to create 'toolchain.cmake'.
+// Contains all the data we need from 'gcc/Makefile' to create 'CMakeLists.txt'.
 type Data struct {
 
 	// Source files to compile.
@@ -96,6 +108,11 @@ func (data *Data) ReadMakefile(r io.Reader) error {
 		return errors.Wrap(err, "find device")
 	}
 	return nil
+}
+
+// WriteCMakeLists writes the 'CMakeLists.txt' to the provided writer.
+func (data *Data) WriteCMakeLists(w io.Writer) error {
+	return templateCMakeLists.Execute(w, data)
 }
 
 // WriteToolchain writes the 'toolchain.cmake' to the provided writer.
